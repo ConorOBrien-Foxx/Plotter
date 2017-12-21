@@ -18,7 +18,9 @@ Copy the `media` folder to this folder. You should now have a folder `addons\med
 
 ### Installing the `plot` library.
 
-Open up your favorite terminal and type `jconsole`. (You may have to add j\bin to your path/environment for this to work.) Then, type `install 'plot'`.
+Open up your favorite terminal and type `jconsole`. (You may have to add j\bin to your path/environment for this to work.) Then, type the following:
+
+    install 'graphics/plot'
 
 ### Installing Plotter
 
