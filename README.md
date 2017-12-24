@@ -16,12 +16,6 @@ Navigate to the `addons` folder of your J installation. On windows, it might loo
 
 Copy the `media` folder to this folder. You should now have a folder `addons\media`.
 
-### Installing the `plot` library.
-
-Open up your favorite terminal and type `jconsole`. (You may have to add j\bin to your path/environment for this to work.) Then, type the following:
-
-    install 'graphics/plot'
-
 ### Installing Plotter
 
 If you have git installed, you can just type:
@@ -29,6 +23,12 @@ If you have git installed, you can just type:
     git clone https://github.com/ConorOBrien-Foxx/Plotter.git
 
 If not, you can just click on the "download" button on this repository.
+
+### Installing the necessary libraries
+
+Just execute:
+
+    jconsole install.ijs
 
 ## Documentation
 
