@@ -1,10 +1,12 @@
 load 'strings plot numeric regex trig'
-load 'defs.ijs'
+load './defs.ijs'
 args =: 2 }. ARGV
 
 helpmsg =: }: noun define
 Usage: jconsole plotter.ijs <in-file>
 )
+
+out_default =: 'c:/users/conorob/j64-806-user/temp/plot.pdf'
 
 NB. randomizing the seed (usually the same state upon startup?)
 (9!:1) 1000 * sum time ''
@@ -13,7 +15,37 @@ NB. randomizing the seed (usually the same state upon startup?)
 
 filename =: 2 pick ARGV
 
+ARGV_progvars_ =: 3 }. ARGV
+ARG_progvars_ =: pick&ARGV_progvars_
+
 content =: readf filename
+
+COMMENT_WORDS =: deb each lines (noun define)
+    note
+    aside
+    comment
+    nb
+    nop
+    noop
+    explanation
+    todo
+    bug
+    #
+)
+GENERICS =: deb each lines (noun define)
+    xcaption
+    ycaption
+    captionfont
+    titlefont
+    labelfont
+    keyfont
+    keypos
+    keystyle
+    keymarkers
+    keycolor
+    pensize
+    aspect
+)
 
 TYPE =: 'line'
 settype =: monad def 'pd ''type '', line =: y'
@@ -25,6 +57,7 @@ main =: monad define
   
   showplot =: 1
   building =: 0
+  save_loc =: ''
   build =: ''
   
   for_it. enumerate l do.
@@ -39,11 +72,14 @@ main =: monad define
     first =. 0 pick words =. ;: line =. CRLF-.~>line
     args =: (1 + #first) }. line
     argv =: argparse args
-    select. first
+    select. tolower first -. '.:'
       case. 'dataf'             do.
         for_file. argparse args do.
           pd ". readf >file
         end.
+      
+      case. 'saveto'            do.
+        save_loc =: deb args
       
       case. 'legend';'key'      do.
         pd 'key ' , args
@@ -54,7 +90,7 @@ main =: monad define
         cocurrent 'base'
       
       case. 'title'             do.
-        pd 'title {}' fmt <'progvars' interp args
+        pd 'title {}' fmt <deb 'progvars' interp args
       
       case. 'points'            do.
         oldtype =. TYPE
@@ -79,6 +115,9 @@ main =: monad define
           keys =: <~. data
         end.
         pd freq data
+        if. isbox keys do.
+          keys =: ' ' joinstring dquote@fmt each keys
+        end.
         pd 'xlabel {}' fmt <keys
         
       case. 'xrange';'yrange'   do.
@@ -90,6 +129,16 @@ main =: monad define
       
       case. 'xlabel';'ylabel'   do.
         pd '{} {}' fmt first;args
+      
+      case. 'axes'              do.
+        pd 'axes {}' fmt deb args
+      
+      case. 'color'             do.
+        colors =. ', ' joinstring deb argv
+        pd 'color {}' fmt <colors
+      
+      case. GENERICS            do.
+        pd '{} {}' fmt first;deb args
       
       case. 'freqkey'           do.
         cocurrent 'progvars'
@@ -153,7 +202,12 @@ main =: monad define
         name =: 0 pick argv
         body =: deb (#name) }. args
         cocurrent 'progvars'
-        ". '{} =: {}' fmt name_base_; body_base_
+        try.
+          ". '{} =: {}' fmt name_base_; body_base_
+        catch.
+          cocurrent 'base'
+          ERRRUNTIME die '{}: In `{}`:{}|{}' fmt (geterr '') ; first ; LF ; line
+        end.
         cocurrent 'base'
       
       case. 'echo'              do.
@@ -180,6 +234,10 @@ main =: monad define
       
       case. 'hide'              do.
         showplot =: 0
+    
+      NB. comment symbol
+      case. COMMENT_WORDS       do.
+        NB. do nothing
       
       case. do.
         ERRNOCMD die '[line {}] No such command {}.' fmt i; quote first
@@ -189,6 +247,10 @@ main =: monad define
   if. showplot do.
     try.
       pd 'show'
+      if. -. save_loc -: '' do.
+        content =. 1!:1 <out_default
+        content 1!:2 <save_loc
+      end.
     catch.
       stderr lasterr ''
       exit ERRPLOT

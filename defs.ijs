@@ -3,12 +3,17 @@ cocurrent 'z'
 
 load 'strings math/misc/bigpi tables/csv'
 
-void =: 0 0&$@
 NILF =: ''"_
+type =: 3!:0
+isnan =: 128!:5
+lasterr =: 13!:12@NILF
+time =: 6!:0
+
+void =: 0 0&$@
 perr =: 'Error: ' stderr@, ,&LF
 die =: exit@[ [ perr@]
 lines =: LF&cut
-isbox =: -.@(-: >)
+isbox =: 32 -: type
 enbox =: [: < >^:_
 unbox =: >^:_
 boxif =: ([: enbox ;/)@]^:(isbox@[)
@@ -23,13 +28,25 @@ unquote =: ".^:isquote
 default =: #@[ {. ] , #@] }. [
 clamp =: head@[ >. tail@[ <. ]
 repr =: (LF joinstring ;/)^:(#@$ > 1:)@":
-isnan =: 128!:5
-lasterr =: 13!:12@NILF
 sum =: +/
+avg =: sum % #
 freq =: 1 #. =
 range =: [ + i.@(-~&|)
 to =: range >:
-time =: 6!:0
+errpat =: rxcomp '(?<=\|)( ?\w+)+'
+geterr =: errpat rxfirst lasterr
+count =: (+/@:=)"0 _
+pair =: ,&<
+
+nsmooth =: dyad define
+  e =. <. -: x
+  t =. (e${.y) , y , (e${:y)
+  i =. x ]\ t
+  (#y) $ avg"1 i
+)
+
+smooth =: [: ((+/ % 3:)"1) 3 ]\ {. , ] , {:
+
 
 bigpi =: bigpi f. M.
 
@@ -128,7 +145,7 @@ readf =: monad define
 
 NB. interpolation
 interp_pat_temp_ =: rxcomp '\$(\w+)'
-interp =: (coname'')&$: : (dyad define)
+interp =: (coname@NILF $: ]) : (dyad define)
   matches =. interp_pat_temp_ rxmatches y
   results =. ''
   retbase =. enbox x
@@ -137,7 +154,11 @@ interp =: (coname'')&$: : (dyad define)
     name =. (start + i.size) { y
     ". 'results =. results , <fmt {}__retbase' fmt <name
   end.
-  results (,:@{."_1 matches) rxmerge y
+  try.
+    results (,:@{."_1 matches) rxmerge y
+  catch.
+    y
+  end.
 )
 
 NB. bound pinching
@@ -169,7 +190,18 @@ d =: 1&$: : (1#.>:@?@#)
 sim =: simulate =: 1000&$: : ([:".@>[$<@])
 NB. from http://code.jsoftware.com/wiki/Plot/Function
 sombrero0 =: [: (1&o. % ]) [: %: [: +/~ *:
-dyasombrero=: (4 : '(1&o. % ]) %:+/*:x,y')"0/
+dyasombrero =: (4 : '(1&o. % ]) %:+/*:x,y')"0/
 
+
+NB. some color schemes
+PROFESSIONAL =: 144 175 197 , 51 107 135 , 42 49 50 ,: 118 54 38
+CRISP =: 80 81 96 , 104 130 158 , 174 189 56 ,: 89 130 52
+HIGHLIGHT =: 1 1 1 , 237 45 46 , 0 140 71 , 24 89 169 ,: 243 125 34
+SUBDUED =: 114 114 114 , 241 89 95 , 121 195 106 , 89 154 211 , 249 166 90 ,: 158 102 171
+SUBDUEDTWO =: 4 2 0 1 { SUBDUED
+
+DETRACT =: 200 200 200
+NB. IMPORTANCE =: 120 180 180 , 241 120 127 ,: 85 85 85
+IMPORTANCE =: 160 220 220 , 253 150 90 ,: 85 85 85
 
 cocurrent 'base'
